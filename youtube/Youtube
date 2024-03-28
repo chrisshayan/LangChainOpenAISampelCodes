@@ -1,0 +1,87 @@
+from langchain_community.document_loaders.blob_loaders.youtube_audio import (
+    YoutubeAudioLoader,
+)
+from langchain_community.document_loaders.generic import GenericLoader
+from langchain_community.document_loaders.parsers.audio import (
+    OpenAIWhisperParser,
+    OpenAIWhisperParserLocal,
+)
+from langchain.chains import RetrievalQA
+from langchain_community.vectorstores import FAISS
+from langchain_openai import ChatOpenAI, OpenAIEmbeddings
+from langchain_text_splitters import RecursiveCharacterTextSplitter
+
+
+# set a flag to switch between local and remote parsing
+# change this to True if you want to use local parsing
+local = True
+
+# YouTube Videos
+urls = ["https://www.youtube.com/watch?v=3FIUI1oj2Bg", "https://www.youtube.com/watch?v=gDua7slyvCI"]
+
+# Directory to save audio files
+save_dir = "Downloads/YouTube"
+
+# Transcribe the videos to text
+if local:
+    loader = GenericLoader(
+        YoutubeAudioLoader(urls, save_dir), OpenAIWhisperParserLocal()
+    )
+else:
+    loader = GenericLoader(YoutubeAudioLoader(urls, save_dir), OpenAIWhisperParser())
+docs = loader.load()
+
+
+# Returns a list of Documents, which can be easily viewed or parsed
+print(docs[0].page_content[0:500])
+
+# Combine doc
+combined_docs = [doc.page_content for doc in docs]
+text = " ".join(combined_docs)
+
+# Split them
+text_splitter = RecursiveCharacterTextSplitter(chunk_size=1500, chunk_overlap=150)
+splits = text_splitter.split_text(text)
+
+# Build an index
+embeddings = OpenAIEmbeddings()
+vectordb = FAISS.from_texts(splits, embeddings)
+
+# Build a QA chain
+qa_chain = RetrievalQA.from_chain_type(
+    llm=ChatOpenAI(model_name="gpt-3.5-turbo", temperature=0),
+    chain_type="stuff",
+    retriever=vectordb.as_retriever(),
+)
+
+# Ask a question!
+query = "What is profit growth in 2022 and 2023?"
+print(query)
+print(qa_chain.run(query))
+
+query = "how healthy is financial of this company?"
+print(query)
+print(qa_chain.run(query))
+
+query = "Who was presenting in this presentations?"
+print(query)
+print(qa_chain.run(query))
+
+query = "Give me summary of presentations"
+print(query)
+print(qa_chain.run(query))
+
+query = "are they doing any digital transformation?"
+print(query)
+print(qa_chain.run(query))
+
+# What is profit growth in 2022 and 2023?
+# The profit growth in 2022 was not explicitly mentioned in the provided context. However, in 2023, the net income was reported to be 1.9 billion, which is a 13% increase year over year.
+# how healthy is financial of this company?
+# Based on the information provided, the financial health of the company seems strong. The company reported a net income of 1.9 billion in fiscal year 2023, which is a 13% increase year over year. Additionally, they plan to return $1 billion in cash to owners in fiscal year 2023. The company also mentioned maintaining a strong balance sheet to navigate changing market conditions and invest strategically for the future. Overall, the company's financial performance and ability to generate substantial cash returns indicate a healthy financial position.
+# Who was presenting in this presentations?
+# The presentations were being presented by the leadership team of CHS (Cenex Harvest States), a cooperative company.
+# Give me summary of presentations
+# The presentations highlighted the exceptional financial performance of CHS in fiscal year 2023, achieving record-breaking profitability and earnings. The focus was on sustainable growth, long-term value, and the cooperative philosophy of being stronger together. The company emphasized its commitment to building a strong and sustainable future, ensuring financial strength, and creating value for owners in the long term. The importance of a proposed by-laws amendment to secure financial strength and sustainability was also emphasized, with a call for support and trust from stakeholders to continue the cooperative's success.
+# are they doing any digital transformation?
+# Based on the provided context, there is no specific mention of CHS engaging in any digital transformation initiatives. The information primarily focuses on financial performance, business partnerships, operational details, and market conditions. Therefore, it is unclear whether CHS is currently undergoing any digital transformation efforts.
