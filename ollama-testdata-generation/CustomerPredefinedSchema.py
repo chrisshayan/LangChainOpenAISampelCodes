@@ -1,6 +1,5 @@
 import requests
 import json
-import random
 
 model = "llama2"
 template = {
@@ -13,20 +12,29 @@ template = {
         "zipCode": ""
     },
     "phoneNumber": "",
-    "currentAccountNumber": "",
-    "currentAccountBalance": "",
+    "account": {
+        "account_number": "",
+        "balance": "",
+        "transactions": [
+            {
+                "dateTimeHHMMSS": "",
+                "description": "",
+                "amount": ""
+            }
+        ]
+    },
     "creditCardNumber": "",
     "creditCardLimit": "",
     "debitCardNumber": ""
 }
 
 prompt = (f"generate one realistically believable sample data set of a persons first name, last name, address in the "
-          f"Vietnam, phone number, current account number, balance for current account in VND, realistic VISA or "
+          f"Vietnam, phone number, current account number, balance for current account in VND, transaction detail (at least 10 records) "
+          f"including date and time, description (deposit, withdraw or interest), realistic VISA or"
           f"Mastercard credit card"
           f"number, limit for credit card using VND, and a VISA or Mastercard debit card number. \nUse the following "
           f"template:"
           f"{json.dumps(template)}.")
-
 
 data = {
     "prompt": prompt,
@@ -42,3 +50,4 @@ json_data = json.loads(response.text)
 print(json.dumps(json.loads(json_data["response"]), indent=2))
 
 # ollama pull llama2
+# python3 CustomerPredefinedSchema.py
