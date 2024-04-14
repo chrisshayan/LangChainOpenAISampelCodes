@@ -52,7 +52,7 @@ print(db.get_usable_table_names())
 print("Using local LLM, make sure you have installed Ollama (https://ollama.com/download) and have it running")
 llm = Ollama(model="openchat", temperature=0)
 
-agent_executor = create_sql_agent(llm, db=db, verbose=False, max_execution_time=10*60, agent_type=AgentType.ZERO_SHOT_REACT_DESCRIPTION,)
+agent_executor = create_sql_agent(llm, db=db, verbose=False, max_execution_time=50*60, agent_type=AgentType.ZERO_SHOT_REACT_DESCRIPTION,)
 
 with contextlib.suppress(Exception):
     #print(agent_executor.invoke(prompt.format(input="Please summarize what you see interesting in max 300 words."))["output"])
@@ -61,9 +61,9 @@ with contextlib.suppress(Exception):
     print(agent_executor.invoke(prompt.format(input="how many departments does the company have?"))["output"])
     print(agent_executor.invoke(prompt.format(input="What is the average salary of employees for each department in 2002? "
                                                     "Please show amount and department name."))["output"])
-    print(agent_executor.invoke(prompt.format(input="What is average salary of employees who are older than 25 years?"))["output"])
-    print(agent_executor.invoke(prompt.format(input="How much total salary increased comparing 1995 to 2002?"))["output"])
+    print(agent_executor.invoke(prompt.format(input="How much total salary increased comparing 1995 to 1996?"))["output"])
     print(agent_executor.invoke(prompt.format(input="which department is the highest salary?"))["output"])
+    #print(agent_executor.invoke(prompt.format(input="What is average salary of employees who are older than 25 years?"))["output"])
     #print(agent_executor.invoke(prompt.format(input="Which employee (employee id and full name) has highest salary in 2002?"))["output"])
     #print(agent_executor.invoke(prompt.format(input="How many times employee number 10001 got salary increase?"))["output"])
     #print(agent_executor.invoke(prompt.format(input="What is the average salary of employees for Finance department?"))["output"])
